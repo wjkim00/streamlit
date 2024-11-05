@@ -18,9 +18,10 @@ import React, {
   CSSProperties,
   FunctionComponent,
   HTMLProps,
-  PureComponent,
+  memo,
   ReactElement,
   ReactNode,
+  useContext,
 } from "react"
 
 import { visit } from "unist-util-visit"
@@ -44,6 +45,7 @@ import { findAndReplace } from "mdast-util-find-and-replace"
 import xxhash from "xxhashjs"
 
 import StreamlitSyntaxHighlighter from "@streamlit/lib/src/components/elements/CodeBlock/StreamlitSyntaxHighlighter"
+import { StyledInlineCode } from "@streamlit/lib/src/components/elements/CodeBlock/styled-components"
 import IsDialogContext from "@streamlit/lib/src/components/core/IsDialogContext"
 import IsSidebarContext from "@streamlit/lib/src/components/core/IsSidebarContext"
 import ErrorBoundary from "@streamlit/lib/src/components/shared/ErrorBoundary"
@@ -53,6 +55,7 @@ import {
   getMarkdownTextColors,
 } from "@streamlit/lib/src/theme"
 import { LibContext } from "@streamlit/lib/src/components/core/LibContext"
+import streamlitLogo from "@streamlit/lib/src/assets/img/streamlit-logo/streamlit-mark-color.svg"
 
 import {
   StyledHeadingActionElements,
@@ -319,9 +322,9 @@ export const CustomCodeTag: FunctionComponent<
       {codeText}
     </StreamlitSyntaxHighlighter>
   ) : (
-    <code className={className} {...omit(props, "node")}>
+    <StyledInlineCode className={className} {...omit(props, "node")}>
       {children}
-    </code>
+    </StyledInlineCode>
   )
 }
 
@@ -460,6 +463,80 @@ export function RenderedMarkdown({
     }
   }
 
+  function remarkStreamlitLogo() {
+    return (tree: any) => {
+      function replaceStreamlit(): any {
+        return {
+          type: "text",
+          value: "",
+          data: {
+            hName: "img",
+            hProperties: {
+              src: streamlitLogo,
+              alt: "Streamlit logo",
+              style: {
+                display: "inline-block",
+                // Disable selection for copying it as text.
+                // Allowing this leads to copying the alt text,
+                // which can be confusing / unexpected.
+                userSelect: "none",
+                height: "0.75em",
+                verticalAlign: "baseline",
+                // The base of the Streamlit logo is curved, so move it down a bit to
+                // make it look aligned with the text.
+                // eslint-disable-next-line streamlit-custom/no-hardcoded-theme-values
+                marginBottom: "-0.05ex",
+              },
+            },
+          },
+        }
+      }
+      findAndReplace(tree, [[/:streamlit:/g, replaceStreamlit]])
+      return tree
+    }
+  }
+
+  function remarkTypographicalSymbols() {
+    return (tree: any) => {
+      visit(tree, (node, index, parent) => {
+        if (
+          parent &&
+          (parent.type === "link" || parent.type === "linkReference")
+        ) {
+          // Don't replace symbols in links.
+          // Note that remark extensions are not applied in code blocks and latex
+          // formulas, so we don't need to worry about them here.
+          return
+        }
+
+        if (node.type === "text" && node.value) {
+          // Only replace symbols wrapped in spaces, so it's a bit safer in case the
+          // symbols are used as part of a word or longer string of symbols.
+          const replacements = [
+            [/(^|\s)<->(\s|$)/g, "$1↔$2"],
+            [/(^|\s)->(\s|$)/g, "$1→$2"],
+            [/(^|\s)<-(\s|$)/g, "$1←$2"],
+            [/(^|\s)--(\s|$)/g, "$1—$2"],
+            [/(^|\s)>=(\s|$)/g, "$1≥$2"],
+            [/(^|\s)<=(\s|$)/g, "$1≤$2"],
+            [/(^|\s)~=(\s|$)/g, "$1≈$2"],
+          ]
+
+          let newValue = node.value
+          for (const [pattern, replacement] of replacements) {
+            newValue = newValue.replace(pattern, replacement as string)
+          }
+
+          if (newValue !== node.value) {
+            node.value = newValue
+          }
+        }
+      })
+
+      return tree
+    }
+  }
+
   const plugins = [
     remarkMathPlugin,
     remarkEmoji,
@@ -467,6 +544,8 @@ export function RenderedMarkdown({
     remarkDirective,
     remarkColoring,
     remarkMaterialIcons,
+    remarkStreamlitLogo,
+    remarkTypographicalSymbols,
   ]
 
   const rehypePlugins: PluggableList = [
@@ -481,8 +560,8 @@ export function RenderedMarkdown({
 
   // Sets disallowed markdown for widget labels
   const disallowed = [
-    // Restricts images, table elements, headings, unordered/ordered lists, task lists, horizontal rules, & blockquotes
-    "img",
+    // Restricts table elements, headings, unordered/ordered lists, task lists, horizontal rules, & blockquotes
+    // Note that images are allowed but have a max height equal to the text height
     "table",
     "thead",
     "tbody",
@@ -526,55 +605,38 @@ export function RenderedMarkdown({
  * Wraps the <ReactMarkdown> component to include our standard
  * renderers and AST plugins (for syntax highlighting, HTML support, etc).
  */
-class StreamlitMarkdown extends PureComponent<Props> {
-  static contextType = IsSidebarContext
+const StreamlitMarkdown: React.FC<Props> = ({
+  source,
+  allowHTML,
+  style,
+  isCaption,
+  isLabel,
+  boldLabel,
+  largerLabel,
+  disableLinks,
+  isToast,
+}) => {
+  const isInSidebar = useContext(IsSidebarContext)
 
-  context!: React.ContextType<typeof IsSidebarContext>
-
-  public componentDidCatch = (): void => {
-    const { source } = this.props
-
-    throw Object.assign(new Error(), {
-      name: "Error parsing Markdown or HTML in this string",
-      message: <p>{source}</p>,
-      stack: null,
-    })
-  }
-
-  public render(): ReactNode {
-    const {
-      source,
-      allowHTML,
-      style,
-      isCaption,
-      isLabel,
-      boldLabel,
-      largerLabel,
-      disableLinks,
-      isToast,
-    } = this.props
-    const isInSidebar = this.context
-
-    return (
-      <StyledStreamlitMarkdown
-        isCaption={Boolean(isCaption)}
-        isInSidebar={isInSidebar}
+  return (
+    <StyledStreamlitMarkdown
+      isCaption={Boolean(isCaption)}
+      isInSidebar={isInSidebar}
+      isLabel={isLabel}
+      boldLabel={boldLabel}
+      largerLabel={largerLabel}
+      isToast={isToast}
+      style={style}
+      data-testid={isCaption ? "stCaptionContainer" : "stMarkdownContainer"}
+    >
+      <RenderedMarkdown
+        source={source}
+        allowHTML={allowHTML}
         isLabel={isLabel}
-        boldLabel={boldLabel}
-        largerLabel={largerLabel}
-        isToast={isToast}
-        style={style}
-        data-testid={isCaption ? "stCaptionContainer" : "stMarkdownContainer"}
-      >
-        <RenderedMarkdown
-          source={source}
-          allowHTML={allowHTML}
-          isLabel={isLabel}
-          disableLinks={disableLinks}
-        />
-      </StyledStreamlitMarkdown>
-    )
-  }
+        disableLinks={disableLinks}
+      />
+    </StyledStreamlitMarkdown>
+  )
 }
 
 interface LinkProps {
@@ -610,4 +672,4 @@ export function LinkWithTargetBlank(props: LinkProps): ReactElement {
   )
 }
 
-export default StreamlitMarkdown
+export default memo(StreamlitMarkdown)

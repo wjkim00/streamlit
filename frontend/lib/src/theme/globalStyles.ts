@@ -15,16 +15,11 @@
  */
 
 import { css, SerializedStyles } from "@emotion/react"
-import { darken, readableColor, transparentize } from "color2k"
+import { darken, transparentize } from "color2k"
 
 import { EmotionTheme } from "@streamlit/lib/src/theme"
 
 export const globalStyles = (theme: EmotionTheme): SerializedStyles => css`
-  a,
-  a:visited {
-    color: ${theme.colors.primary};
-  }
-
   // Override the base font-size value here.
   // This overrides the value set in reboot.scss.
   html {
@@ -41,46 +36,10 @@ export const globalStyles = (theme: EmotionTheme): SerializedStyles => css`
     }
   }
 
-  a:hover,
-  a:active {
-    color: ${theme.colors.primary};
-    text-decoration: underline;
-  }
-
   iframe {
     border: none;
     padding: 0;
     margin: 0;
-  }
-
-  code {
-    padding: 0.2em 0.4em;
-    margin: 0;
-    border-radius: ${theme.radii.md};
-    background: ${theme.colors.codeHighlightColor};
-    color: ${theme.colors.codeTextColor};
-  }
-
-  pre {
-    margin: 0 0 1rem 0;
-    background: ${theme.colors.codeHighlightColor};
-    border-radius: ${theme.radii.md};
-    padding: 1rem;
-
-    code {
-      background: transparent;
-      border: 0;
-      display: inline;
-      font-size: ${theme.fontSizes.sm};
-      line-height: inherit;
-      margin: 0;
-      padding: 0;
-      white-space: pre;
-      word-break: normal;
-      word-wrap: normal;
-      overflow-x: auto;
-      color: ${theme.colors.codeTextColor};
-    }
   }
 
   .disabled {
@@ -155,7 +114,7 @@ export const globalStyles = (theme: EmotionTheme): SerializedStyles => css`
   h1 {
     font-family: ${theme.genericFonts.headingFont};
     font-weight: ${theme.fontWeights.extrabold};
-
+    font-size: 2.75rem;
     // Use rem so we can remove it when first child, knowing that the
     // element-container above always adds 1rem.
     padding: 1.25rem 0 1rem 0;
@@ -167,6 +126,7 @@ export const globalStyles = (theme: EmotionTheme): SerializedStyles => css`
   h2 {
     font-family: ${theme.genericFonts.headingFont};
     font-weight: ${theme.fontWeights.bold};
+    font-size: 2.25rem;
     letter-spacing: -0.005em;
 
     // Use rem so we can remove it when first child, knowing that the
@@ -180,6 +140,7 @@ export const globalStyles = (theme: EmotionTheme): SerializedStyles => css`
   h3 {
     font-family: ${theme.genericFonts.headingFont};
     font-weight: ${theme.fontWeights.bold};
+    font-size: 1.75rem;
     letter-spacing: -0.005em;
 
     // Use rem so we can remove it when first child, knowing that the
@@ -193,6 +154,7 @@ export const globalStyles = (theme: EmotionTheme): SerializedStyles => css`
   h4 {
     font-family: ${theme.genericFonts.headingFont};
     font-weight: ${theme.fontWeights.bold};
+    font-size: 1.5rem;
     padding: 0.75rem 0 1rem 0;
     margin: 0;
     line-height: 1.2;
@@ -201,6 +163,7 @@ export const globalStyles = (theme: EmotionTheme): SerializedStyles => css`
   h5 {
     font-family: ${theme.genericFonts.headingFont};
     font-weight: ${theme.fontWeights.bold};
+    font-size: 1.25rem;
     padding: 0 0 1rem 0;
     margin: 0;
     line-height: 1.2;
@@ -209,6 +172,7 @@ export const globalStyles = (theme: EmotionTheme): SerializedStyles => css`
   h6 {
     font-family: ${theme.genericFonts.headingFont};
     font-weight: ${theme.fontWeights.bold};
+    font-size: 1rem;
     padding: 0 0 1rem 0;
     margin: 0;
     line-height: 1.2;
@@ -289,30 +253,17 @@ export const globalStyles = (theme: EmotionTheme): SerializedStyles => css`
     font-weight: ${theme.fontWeights.extrabold};
   }
 
+  // Small
+
+  small {
+    font-size: ${theme.fontSizes.sm};
+  }
+
   // Mark
 
   mark {
     padding: 0.2em;
     background-color: ${theme.colors.secondaryBg};
-  }
-
-  // Sub and Sup
-  //
-  // Prevent sub and sup elements from affecting the line height in
-  // all browsers.
-
-  sub,
-  sup {
-    position: relative;
-    line-height: 0;
-    vertical-align: baseline;
-  }
-
-  sub {
-    bottom: -0.25em;
-  }
-  sup {
-    top: -0.5em;
   }
 
   // Links
@@ -344,70 +295,22 @@ export const globalStyles = (theme: EmotionTheme): SerializedStyles => css`
   pre,
   code,
   kbd {
+    font-size: 1em;
     font-family: ${theme.genericFonts.codeFont};
-  }
-
-  samp {
-    font-family: ${theme.genericFonts.codeFont};
-  }
-
-  // Blockquote
-  samp,
-  blockquote {
-    margin: 1em 0 1em -1px;
-    padding: 0 0 0 1.2em;
-    font-size: 1rem;
-    border-left: ${theme.sizes.borderWidth} solid ${theme.colors.lightGray};
-  }
-
-  // 1. Remove browser default top margin
-  // 2. Reset browser default of 1em to use rems
-  // 3. Don't allow content to break outside
-  // 4. Disable auto-hiding scrollbar in legacy Edge to avoid overlap,
-  //    making it impossible to interact with the content
-
-  pre {
-    display: block;
-    margin-top: 0; // 1
-    margin-bottom: 1rem; // 2
-    overflow: auto; // 3
-    color: ${readableColor(theme.colors.bgColor)};
-    -ms-overflow-style: scrollbar; // 4
-
-    // Account for some code outputs that place code tags in pre tags
-    code {
-      color: inherit;
-      word-break: normal;
-    }
-  }
-
-  code {
-    color: ${theme.colors.codeTextColor};
-    word-wrap: break-word;
-
-    // Streamline the style when inside anchors to avoid broken underline and more
-    a > & {
-      color: inherit;
-    }
   }
 
   kbd {
     padding: 0.2rem 0.4rem;
     color: ${theme.colors.codeTextColor};
     background-color: ${theme.colors.codeHighlightColor};
+    font-size: ${theme.fontSizes.sm};
+    border-radius: ${theme.radii.md};
 
     kbd {
       padding: 0;
       font-weight: ${theme.fontWeights.bold};
+      font-size: 1em;
     }
-  }
-
-  // Figures
-  //
-  // Apply a consistent margin strategy (matches our type styles).
-
-  figure {
-    margin: 0 0 1rem;
   }
 
   // Images and content
@@ -487,6 +390,7 @@ export const globalStyles = (theme: EmotionTheme): SerializedStyles => css`
     margin: 0; // 1
     font-family: inherit;
     line-height: inherit;
+    font-size: inherit;
   }
 
   // Show the overflow in Edge
@@ -508,6 +412,13 @@ export const globalStyles = (theme: EmotionTheme): SerializedStyles => css`
   // Details at https://github.com/twbs/bootstrap/pull/30562
   [role="button"] {
     cursor: pointer;
+  }
+
+  // Set the cursor for all buttons buttons
+  button {
+    &:not(:disabled) {
+      cursor: pointer;
+    }
   }
 
   // Remove the inheritance of word-wrap in Safari.
@@ -574,6 +485,7 @@ export const globalStyles = (theme: EmotionTheme): SerializedStyles => css`
     width: 100%;
     padding: 0;
     margin-bottom: ${theme.spacing.sm};
+    font-size: inherit;
     line-height: inherit;
     white-space: normal; // 2
 
@@ -636,12 +548,6 @@ export const globalStyles = (theme: EmotionTheme): SerializedStyles => css`
     display: inline-block;
   }
 
-  // Remove border from iframe
-
-  iframe {
-    border: 0;
-  }
-
   // Summary
   //
   // 1. Add the correct display in all browsers
@@ -649,14 +555,6 @@ export const globalStyles = (theme: EmotionTheme): SerializedStyles => css`
   summary {
     display: list-item; // 1
     cursor: pointer;
-  }
-
-  // Progress
-  //
-  // Add the correct vertical alignment in Chrome, Firefox, and Opera.
-
-  progress {
-    vertical-align: baseline;
   }
 
   // Hidden attribute

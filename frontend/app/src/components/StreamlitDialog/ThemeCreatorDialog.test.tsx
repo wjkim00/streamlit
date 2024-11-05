@@ -25,8 +25,10 @@ import {
   fonts,
   LibContextProps,
   lightTheme,
+  mockSessionInfo,
   toThemeInput,
 } from "@streamlit/lib"
+import { MetricsManager } from "@streamlit/app/src/MetricsManager"
 import { customRenderLibContext } from "@streamlit/lib/src/test_util"
 
 import ThemeCreatorDialog, {
@@ -42,6 +44,7 @@ const getProps = (
 ): ThemeCreatorDialogProps => ({
   backToSettings: jest.fn(),
   onClose: jest.fn(),
+  metricsMgr: new MetricsManager(mockSessionInfo()),
   ...props,
 })
 

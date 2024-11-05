@@ -123,6 +123,15 @@ module.exports = {
       "LabeledStatement",
       "WithStatement",
     ],
+    "no-restricted-globals": [
+      "error",
+      {
+        name: "localStorage",
+        message:
+          "Please use window.localStorage instead since localStorage is not " +
+          "supported in some browsers (e.g. Android WebView).",
+      },
+    ],
     // Allow foo.hasOwnProperty("bar")
     "no-prototype-builtins": "off",
     // Imports should be `import "./FooModule"`, not `import "./FooModule.js"`
@@ -199,8 +208,18 @@ module.exports = {
         "newlines-between": "always",
       },
     ],
+    "streamlit-custom/no-hardcoded-theme-values": "error",
     "streamlit-custom/use-strict-null-equality-checks": "error",
   },
+  overrides: [
+    {
+      // allow hardcoded styles in our test files and in the theme definitions
+      files: ["**/*.test.ts", "**/*.test.tsx", "lib/src/theme/**/*"],
+      rules: {
+        "streamlit-custom/no-hardcoded-theme-values": ["off"],
+      },
+    },
+  ],
   settings: {
     react: {
       // Tells eslint-plugin-react to automatically detect
