@@ -214,8 +214,8 @@ def get_command_matrix(
         (_interal_button_group, "bar", ("c", "d")),
     ]
 
-    The pills, segmented_control, and _internal_button_group are wrapped in a lambda to pass default
-    arguments that are not shared between them.
+    The pills, segmented_control, and _internal_button_group are wrapped in a lambda to
+    pass default arguments that are not shared between them.
     """
     matrix = []
 
@@ -241,7 +241,8 @@ def get_command_matrix(
     return matrix
 
 
-# TODO: Some tests are very similar to the ones in multi_test.py -> maybe we can refactor them and share even more
+# TODO: Some tests are very similar to the ones in multi_test.py
+#   -> maybe we can refactor them and share even more
 class ButtonGroupCommandTests(DeltaGeneratorTestCase):
     @parameterized.expand(
         [
@@ -326,6 +327,14 @@ class ButtonGroupCommandTests(DeltaGeneratorTestCase):
     @parameterized.expand(
         [
             (st.feedback, ("thumbs",)),
+            (
+                st.feedback,
+                ("thumbs",),
+                {"default": 1},
+                1,
+            ),  # index 1 thumb is down, so value is 0
+            (st.feedback, ("stars",), {"default": 2}, 2),
+            (st.feedback, ("faces",), {"default": 3}, 3),
             (st.pills, ("label", ["a", "b", "c"])),
             (st.pills, ("label", ["a", "b", "c"]), {"default": "b"}, "b"),
             (
@@ -670,8 +679,8 @@ class ButtonGroupCommandTests(DeltaGeneratorTestCase):
         """Test that form id is marshalled correctly inside of a form."""
 
         with st.form("form"):
-            # pass an option that is valid for st.feedback and also the other button_group
-            # commands
+            # pass an option that is valid for st.feedback and also the other
+            # button_group commands
             command("thumbs")
 
         # 2 elements will be created: form block, widget

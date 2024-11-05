@@ -16,13 +16,21 @@ import time
 
 import streamlit as st
 
+if st.checkbox("Set default value", value=False):
+    st.session_state.default_feedback = 2
+else:
+    st.session_state.default_feedback = None
+
 st.feedback()
 st.feedback(
     "faces",
     key="faces_feedback",
     on_change=lambda: st.write(f"Faces sentiment: {st.session_state.faces_feedback}"),
 )
-sentiment = st.feedback("stars")
+sentiment = st.feedback(
+    "stars",
+    default=st.session_state.default_feedback,
+)
 st.write(f"Star sentiment: {sentiment}")
 
 
